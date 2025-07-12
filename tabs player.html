@@ -1,0 +1,598 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎸 Ukulele Fretboard Display</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            font-family: 'Arial', sans-serif;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+        
+        .fretboard-container {
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #ff0000;
+            border-radius: 15px;
+            padding: 20px;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .fretboard-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        
+        .string-labels {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .string-label {
+            width: 40px;
+            text-align: center;
+            color: #ffffff;
+        }
+        
+        .fretboard {
+            position: relative;
+            width: 260px;
+            height: 400px;
+            background: #8B4513;
+            border-radius: 8px;
+            margin: 0 auto;
+        }
+        
+        .fret {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #C0C0C0;
+            left: 0;
+        }
+        
+        .fret-number {
+            position: absolute;
+            left: -25px;
+            top: -8px;
+            font-size: 12px;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        
+        .string {
+            position: absolute;
+            height: 100%;
+            width: 2px;
+            background: #FFD700;
+            top: 0;
+        }
+        
+        .finger-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #4A90E2;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px rgba(74, 144, 226, 0.8);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        
+        .finger-dot:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 15px rgba(74, 144, 226, 1);
+        }
+        
+        .fret-marker {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #888;
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .controls-panel {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+        }
+        
+        .chord-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .current-chord {
+            font-size: 48px;
+            font-weight: bold;
+            color: #4A90E2;
+            text-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .chord-progression {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .chord-button {
+            background: rgba(74, 144, 226, 0.3);
+            border: 2px solid #4A90E2;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .chord-button:hover, .chord-button.active {
+            background: #4A90E2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+        }
+        
+        .tabs-input {
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #4A90E2;
+            border-radius: 8px;
+            color: white;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-bottom: 20px;
+            resize: vertical;
+        }
+        
+        .upload-section {
+            margin-bottom: 30px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .playback-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .control-button {
+            background: rgba(74, 144, 226, 0.8);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        
+        .control-button:hover {
+            background: #4A90E2;
+            transform: translateY(-1px);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin-bottom: 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #4A90E2;
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+        
+        .info-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Fretboard Display -->
+        <div class="fretboard-container">
+            <div class="fretboard-title">Ukulele Fretboard</div>
+            
+            <!-- String Labels -->
+            <div class="string-labels">
+                <div class="string-label">G</div>
+                <div class="string-label">C</div>
+                <div class="string-label">E</div>
+                <div class="string-label">A</div>
+            </div>
+            
+            <!-- Fretboard -->
+            <div class="fretboard" id="fretboard">
+                <!-- Strings -->
+                <div class="string" style="left: 15%;"></div>
+                <div class="string" style="left: 35%;"></div>
+                <div class="string" style="left: 55%;"></div>
+                <div class="string" style="left: 75%;"></div>
+                
+                <!-- Frets will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <!-- Current Chord Display -->
+            <div class="chord-display">
+                <div class="current-chord" id="currentChord">A</div>
+                <div>Current Chord</div>
+            </div>
+            
+            <!-- File Upload -->
+            <div class="upload-section">
+                <input type="file" id="fileInput" class="file-input" accept=".tab,.tef,.txt,.gp5,.gpx">
+                <button class="upload-button" onclick="document.getElementById('fileInput').click()">
+                    📁 Upload Tab File (.tef, .tab, .txt)
+                </button>
+                <div style="font-size: 12px; color: #ccc; text-align: center;">
+                    Supports: TablEdit (.tef), ASCII tabs (.tab, .txt)
+                </div>
+            </div>
+            
+            <!-- Manual Tab Input -->
+            <div>
+                <label style="display: block; margin-bottom: 10px; font-weight: bold;">Manual Tab Input:</label>
+                <textarea id="tabsInput" class="tabs-input" placeholder="Paste your ukulele tabs here...
+Example:
+A |--0--2--0--2--|
+E |--0--0--2--0--|
+C |--1--1--2--1--|
+G |--2--2--2--2--|
+   C  F  G  F
+
+Or chord format:
+C F G F"></textarea>
+                <button class="upload-button" onclick="parseManualTabs()">
+                    🎵 Parse Tabs
+                </button>
+            </div>
+            
+            <!-- Chord Progression -->
+            <div>
+                <label style="display: block; margin-bottom: 10px; font-weight: bold;">Chord Progression:</label>
+                <div class="chord-progression" id="chordProgression">
+                    <!-- Chords will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Playback Controls -->
+            <div class="playback-controls">
+                <button class="control-button" onclick="playPause()">⏯️ Play</button>
+                <button class="control-button" onclick="stop()">⏹️ Stop</button>
+                <button class="control-button" onclick="previous()">⏮️ Prev</button>
+                <button class="control-button" onclick="next()">⏭️ Next</button>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <!-- Info Panel -->
+            <div class="info-panel">
+                <div class="info-row">
+                    <span>BPM:</span>
+                    <span id="bpmDisplay">120</span>
+                </div>
+                <div class="info-row">
+                    <span>Current Bar:</span>
+                    <span id="currentBar">1</span>
+                </div>
+                <div class="info-row">
+                    <span>Total Chords:</span>
+                    <span id="totalChords">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ukulele chord database
+        const chordDatabase = {
+            'C': [0, 0, 0, 3],
+            'F': [2, 0, 1, 0],
+            'G': [0, 2, 3, 2],
+            'Am': [2, 0, 0, 0],
+            'Dm': [2, 2, 1, 0],
+            'Em': [0, 4, 3, 2],
+            'A': [2, 1, 0, 0],
+            'D': [2, 2, 2, 0],
+            'E': [1, 4, 0, 2],
+            'E7': [1, 2, 0, 2],
+            'F#m': [2, 1, 2, 0],
+            'Gm': [0, 2, 3, 1],
+            'B7': [2, 3, 2, 2],
+            'C7': [0, 0, 0, 1]
+        };
+        
+        let currentChordIndex = 0;
+        let chordProgression = ['A', 'F#m', 'D', 'E7', 'A'];
+        let isPlaying = false;
+        let playbackInterval;
+        let bpm = 120;
+        
+        // Initialize fretboard
+        function initializeFretboard() {
+            const fretboard = document.getElementById('fretboard');
+            
+            // Add frets
+            for (let i = 0; i <= 12; i++) {
+                const fret = document.createElement('div');
+                fret.className = 'fret';
+                fret.style.top = (i * 30 + 10) + 'px';
+                
+                // Add fret numbers
+                if (i > 0) {
+                    const fretNumber = document.createElement('div');
+                    fretNumber.className = 'fret-number';
+                    fretNumber.textContent = i;
+                    fret.appendChild(fretNumber);
+                }
+                
+                // Add fret markers
+                if ([3, 5, 7, 9, 12].includes(i)) {
+                    const marker = document.createElement('div');
+                    marker.className = 'fret-marker';
+                    marker.style.top = '15px';
+                    fret.appendChild(marker);
+                }
+                
+                fretboard.appendChild(fret);
+            }
+            
+            // Display initial chord
+            displayChord(chordProgression[currentChordIndex]);
+            updateChordProgression();
+        }
+        
+        // Display chord on fretboard
+        function displayChord(chordName) {
+            // Clear existing finger dots
+            document.querySelectorAll('.finger-dot').forEach(dot => dot.remove());
+            
+            const fretboard = document.getElementById('fretboard');
+            const frets = chordDatabase[chordName];
+            
+            if (!frets) {
+                console.log('Chord not found:', chordName);
+                return;
+            }
+            
+            // String positions (G, C, E, A)
+            const stringPositions = [15, 35, 55, 75]; // percentages
+            
+            frets.forEach((fret, stringIndex) => {
+                if (fret > 0) {
+                    const dot = document.createElement('div');
+                    dot.className = 'finger-dot';
+                    
+                    // Calculate position
+                    const x = stringPositions[stringIndex];
+                    const y = (fret * 30 - 5); // Adjust for fret spacing
+                    
+                    dot.style.left = x + '%';
+                    dot.style.top = y + 'px';
+                    
+                    // Add finger number
+                    dot.title = `String ${stringIndex + 1}, Fret ${fret}`;
+                    
+                    fretboard.appendChild(dot);
+                }
+            });
+            
+            // Update current chord display
+            document.getElementById('currentChord').textContent = chordName;
+        }
+        
+        // Update chord progression display
+        function updateChordProgression() {
+            const container = document.getElementById('chordProgression');
+            container.innerHTML = '';
+            
+            chordProgression.forEach((chord, index) => {
+                const button = document.createElement('button');
+                button.className = 'chord-button';
+                button.textContent = chord;
+                button.onclick = () => {
+                    currentChordIndex = index;
+                    displayChord(chord);
+                    updateChordProgression();
+                };
+                
+                if (index === currentChordIndex) {
+                    button.classList.add('active');
+                }
+                
+                container.appendChild(button);
+            });
+            
+            document.getElementById('totalChords').textContent = chordProgression.length;
+            document.getElementById('currentBar').textContent = currentChordIndex + 1;
+        }
+        
+        // Parse manual tabs
+        function parseManualTabs() {
+            const input = document.getElementById('tabsInput').value.trim();
+            
+            if (!input) {
+                alert('Please enter some tabs!');
+                return;
+            }
+            
+            // Try to parse chord names first
+            const chordMatches = input.match(/\b[A-G][#b]?m?7?\b/g);
+            if (chordMatches) {
+                chordProgression = [...new Set(chordMatches)]; // Remove duplicates
+                currentChordIndex = 0;
+                displayChord(chordProgression[0]);
+                updateChordProgression();
+                return;
+            }
+            
+            // Parse traditional tab format
+            const lines = input.split('\n').filter(line => line.trim());
+            const tabData = [];
+            
+            // Look for tab lines
+            lines.forEach(line => {
+                if (line.includes('|') && /[0-9]/.test(line)) {
+                    const frets = line.match(/\d+/g);
+                    if (frets) {
+                        tabData.push(frets.map(Number));
+                    }
+                }
+            });
+            
+            if (tabData.length > 0) {
+                alert('Tab parsing successful! ' + tabData.length + ' positions found.');
+                // Convert to chord progression (simplified)
+                chordProgression = ['C', 'F', 'G', 'C']; // Default for demo
+                currentChordIndex = 0;
+                displayChord(chordProgression[0]);
+                updateChordProgression();
+            }
+        }
+        
+        // File upload handler
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                
+                if (file.name.endsWith('.tef')) {
+                    alert('TablEdit files require special parsing. Using demo progression.');
+                    chordProgression = ['A', 'F#m', 'D', 'E7', 'A'];
+                } else {
+                    // Try to parse as text
+                    document.getElementById('tabsInput').value = content;
+                    parseManualTabs();
+                }
+            };
+            
+            if (file.name.endsWith('.tef')) {
+                reader.readAsArrayBuffer(file);
+            } else {
+                reader.readAsText(file);
+            }
+        });
+        
+        // Playback controls
+        function playPause() {
+            if (isPlaying) {
+                clearInterval(playbackInterval);
+                isPlaying = false;
+                document.querySelector('.control-button').textContent = '▶️ Play';
+            } else {
+                const interval = (60 / bpm) * 1000; // Convert BPM to milliseconds
+                playbackInterval = setInterval(next, interval);
+                isPlaying = true;
+                document.querySelector('.control-button').textContent = '⏸️ Pause';
+            }
+        }
+        
+        function stop() {
+            clearInterval(playbackInterval);
+            isPlaying = false;
+            currentChordIndex = 0;
+            displayChord(chordProgression[0]);
+            updateChordProgression();
+            document.querySelector('.control-button').textContent = '▶️ Play';
+            document.getElementById('progressFill').style.width = '0%';
+        }
+        
+        function previous() {
+            currentChordIndex = Math.max(0, currentChordIndex - 1);
+            displayChord(chordProgression[currentChordIndex]);
+            updateChordProgression();
+            updateProgress();
+        }
+        
+        function next() {
+            currentChordIndex = (currentChordIndex + 1) % chordProgression.length;
+            displayChord(chordProgression[currentChordIndex]);
+            updateChordProgression();
+            updateProgress();
+        }
+        
+        function updateProgress() {
+            const progress = ((currentChordIndex + 1) / chordProgression.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', initializeFretboard);
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ukulele Tab Player with Highlight</title>
+  <style>
+    .highlight-line {
+      background-color: rgba(0, 255, 0, 0.2);
+      display: block;
+    }
+    #tabDisplay {
+      font-family: monospace;
+      white-space: pre;
+      background: #111;
+      color: #eee;
+      padding: 1em;
+      overflow-y: auto;
+      height: 300px;
+      border: 2px solid #444;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tab Highlight Preview</h1>
+  <div id="tabDisplay">
+    <span class="highlight-line">A|--0--2--0--</span>
+    <span> E|--0--2--0--</span><br/>
+    <span> C|--1--1--2--</span><br/>
+    <span> G|--2--2--2--</span>
+  </div>
+  <script>
+    // Example of auto-highlighting a line
+    setTimeout(() => {
+      const lines = document.querySelectorAll('#tabDisplay span');
+      lines.forEach((line, i) => {
+        line.classList.remove("highlight-line");
+        if (i === 2) line.classList.add("highlight-line");
+      });
+    }, 1000);
+  </script>
+</body>
+</html>

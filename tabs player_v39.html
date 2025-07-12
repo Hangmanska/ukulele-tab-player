@@ -1,0 +1,681 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎸 Ukulele Fretboard Display</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            font-family: 'Arial', sans-serif;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+        
+        .fretboard-container {
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #ff0000;
+            border-radius: 15px;
+            padding: 20px;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .fretboard-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        
+        .string-labels {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .string-label {
+            width: 40px;
+            text-align: center;
+            color: #ffffff;
+        }
+        
+        .fretboard {
+            position: relative;
+            width: 260px;
+            height: 600px;
+            background: #8B4513;
+            border-radius: 8px;
+            margin: 0 auto;
+            border: 2px solid #654321;
+        }
+        
+        .string {
+            position: absolute;
+            height: 100%;
+            width: 3px;
+            background: linear-gradient(to bottom, #FFD700, #B8860B);
+            top: 0;
+            border-radius: 1px;
+            box-shadow: 1px 0 2px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        
+        .fret {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: #C0C0C0;
+            left: 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+        
+        .fret-number {
+            position: absolute;
+            left: -30px;
+            top: -10px;
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: bold;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 6px;
+            border-radius: 3px;
+            min-width: 20px;
+            text-align: center;
+            z-index: 3;
+        }
+        
+        .fret-marker {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #DDD;
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 1px solid #999;
+            z-index: 3;
+        }
+        
+        .finger-dot {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle, #4A90E2, #2171b5);
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px rgba(74, 144, 226, 0.8);
+            z-index: 10;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .finger-dot:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 20px rgba(74, 144, 226, 1);
+        }
+        
+        .capo {
+            position: absolute;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #333, #666, #333);
+            border: 2px solid #222;
+            border-radius: 4px;
+            left: 0;
+            z-index: 5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        
+        .capo:before {
+            content: 'CAPO';
+            position: absolute;
+            left: -50px;
+            top: -5px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #666;
+            background: rgba(0,0,0,0.8);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        
+        .capo-indicator {
+            position: absolute;
+            right: -35px;
+            top: -8px;
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .controls-panel {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+        }
+        
+        .chord-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .current-chord {
+            font-size: 48px;
+            font-weight: bold;
+            color: #4A90E2;
+            text-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .chord-progression {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .chord-button {
+            background: rgba(74, 144, 226, 0.3);
+            border: 2px solid #4A90E2;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .chord-button:hover, .chord-button.active {
+            background: #4A90E2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+        }
+        
+        .upload-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .playback-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .control-button {
+            background: rgba(74, 144, 226, 0.8);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        
+        .control-button:hover {
+            background: #4A90E2;
+            transform: translateY(-1px);
+        }
+        
+        .info-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Fretboard Display -->
+        <div class="fretboard-container">
+            <div class="fretboard-title">Ukulele Fretboard</div>
+            
+            <!-- String Labels -->
+            <div class="string-labels">
+                <div class="string-label">G</div>
+                <div class="string-label">C</div>
+                <div class="string-label">E</div>
+                <div class="string-label">A</div>
+            </div>
+            
+            <!-- Fretboard -->
+            <div class="fretboard" id="fretboard">
+                <!-- Strings -->
+                <div class="string" style="left: 18%;"></div>
+                <div class="string" style="left: 38%;"></div>
+                <div class="string" style="left: 58%;"></div>
+                <div class="string" style="left: 78%;"></div>
+                
+                <!-- Frets 0-12 -->
+                <div class="fret" style="top: 15px;" id="fret-0"></div>
+                <div class="fret" style="top: 60px;" id="fret-1">
+                    <div class="fret-number">1</div>
+                </div>
+                <div class="fret" style="top: 105px;" id="fret-2">
+                    <div class="fret-number">2</div>
+                </div>
+                <div class="fret" style="top: 150px;" id="fret-3">
+                    <div class="fret-number">3</div>
+                    <div class="fret-marker" style="top: 20px;"></div>
+                </div>
+                <div class="fret" style="top: 195px;" id="fret-4">
+                    <div class="fret-number">4</div>
+                </div>
+                <div class="fret" style="top: 240px;" id="fret-5">
+                    <div class="fret-number">5</div>
+                    <div class="fret-marker" style="top: 20px;"></div>
+                </div>
+                <div class="fret" style="top: 285px;" id="fret-6">
+                    <div class="fret-number">6</div>
+                </div>
+                <div class="fret" style="top: 330px;" id="fret-7">
+                    <div class="fret-number">7</div>
+                    <div class="fret-marker" style="top: 20px;"></div>
+                </div>
+                <div class="fret" style="top: 375px;" id="fret-8">
+                    <div class="fret-number">8</div>
+                </div>
+                <div class="fret" style="top: 420px;" id="fret-9">
+                    <div class="fret-number">9</div>
+                    <div class="fret-marker" style="top: 20px;"></div>
+                </div>
+                <div class="fret" style="top: 465px;" id="fret-10">
+                    <div class="fret-number">10</div>
+                </div>
+                <div class="fret" style="top: 510px;" id="fret-11">
+                    <div class="fret-number">11</div>
+                </div>
+                <div class="fret" style="top: 555px;" id="fret-12">
+                    <div class="fret-number">12</div>
+                    <div class="fret-marker" style="top: 15px; left: 40%;"></div>
+                    <div class="fret-marker" style="top: 25px; left: 60%;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <!-- Current Chord Display -->
+            <div class="chord-display">
+                <div class="current-chord" id="currentChord">A</div>
+                <div>Current Chord</div>
+            </div>
+            
+            <!-- Chord Progression -->
+            <div>
+                <label style="display: block; margin-bottom: 10px; font-weight: bold;">Chord Progression:</label>
+                <div class="chord-progression" id="chordProgression">
+                    <!-- Chords will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Playback Controls -->
+            <div class="playback-controls">
+                <button class="control-button" onclick="playPause()">⏯️ Play</button>
+                <button class="control-button" onclick="stop()">⏹️ Stop</button>
+                <button class="control-button" onclick="previous()">⏮️ Prev</button>
+                <button class="control-button" onclick="next()">⏭️ Next</button>
+            </div>
+            
+            <!-- Capo Settings -->
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: bold;">🎸 Capo Settings:</label>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <span style="min-width: 60px;">Capo:</span>
+                    <select id="capoSelect" onchange="updateCapo()" style="
+                        flex: 1;
+                        padding: 8px 12px;
+                        background: rgba(0,0,0,0.5);
+                        border: 2px solid #4A90E2;
+                        border-radius: 6px;
+                        color: white;
+                        font-size: 14px;
+                    ">
+                        <option value="0">None (0)</option>
+                        <option value="1">1st Fret</option>
+                        <option value="2">2nd Fret</option>
+                        <option value="3">3rd Fret</option>
+                        <option value="4">4th Fret</option>
+                        <option value="5">5th Fret</option>
+                        <option value="6">6th Fret</option>
+                        <option value="7">7th Fret</option>
+                        <option value="8">8th Fret</option>
+                        <option value="9">9th Fret</option>
+                        <option value="10">10th Fret</option>
+                        <option value="11">11th Fret</option>
+                        <option value="12">12th Fret</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Audio Controls -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: bold;">🔊 Audio Settings:</label>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" id="audioEnabled" checked onchange="toggleAudio()">
+                        <span>Enable Sound</span>
+                    </label>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="min-width: 60px;">Volume:</span>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.7" 
+                           style="flex: 1;" onchange="updateVolume()">
+                    <span id="volumeDisplay" style="min-width: 40px;">70%</span>
+                </div>
+            </div>
+            
+            <!-- Info Panel -->
+            <div class="info-panel">
+                <div class="info-row">
+                    <span>Current Chord:</span>
+                    <span id="infoChord">A</span>
+                </div>
+                <div class="info-row">
+                    <span>Capo:</span>
+                    <span id="capoInfo">None</span>
+                </div>
+                <div class="info-row">
+                    <span>Audio:</span>
+                    <span id="audioStatus">Enabled</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ukulele chord database
+        const chordDatabase = {
+            'C': [0, 0, 0, 3],
+            'F': [2, 0, 1, 0],
+            'G': [0, 2, 3, 2],
+            'Am': [2, 0, 0, 0],
+            'Dm': [2, 2, 1, 0],
+            'Em': [0, 4, 3, 2],
+            'A': [2, 1, 0, 0],
+            'D': [2, 2, 2, 0],
+            'E': [1, 4, 0, 2],
+            'E7': [1, 2, 0, 2],
+            'F#m': [2, 1, 2, 0],
+            'B7': [2, 3, 2, 2]
+        };
+        
+        // Global variables
+        let currentChordIndex = 0;
+        let chordProgression = ['A', 'F#m', 'D', 'E7', 'A'];
+        let isPlaying = false;
+        let playbackInterval;
+        let capoPosition = 0;
+        let audioEnabled = true;
+        let masterVolume = 0.7;
+        let audioContext;
+        
+        // Ukulele tuning frequencies
+        const ukuleleTuning = {
+            0: 392.00, // G4
+            1: 261.63, // C4  
+            2: 329.63, // E4
+            3: 440.00  // A4
+        };
+        
+        // Initialize audio
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('🔊 Audio initialized');
+            } catch (error) {
+                console.error('❌ Audio not supported');
+                audioEnabled = false;
+            }
+        }
+        
+        // Audio functions
+        function getFrequencyFromFret(stringIndex, fretNumber) {
+            const baseFreq = ukuleleTuning[stringIndex];
+            return baseFreq * Math.pow(2, (fretNumber + capoPosition) / 12);
+        }
+        
+        function playUkuleleNote(stringIndex, fretNumber) {
+            if (!audioEnabled || !audioContext) return;
+            
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            const frequency = getFrequencyFromFret(stringIndex, fretNumber);
+            const currentTime = audioContext.currentTime;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(frequency, currentTime);
+            
+            gainNode.gain.setValueAtTime(0, currentTime);
+            gainNode.gain.linearRampToValueAtTime(masterVolume * 0.5, currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, currentTime + 1.5);
+            
+            oscillator.start(currentTime);
+            oscillator.stop(currentTime + 1.5);
+            
+            console.log(`🎵 Playing ${['G','C','E','A'][stringIndex]} string, fret ${fretNumber + capoPosition}`);
+        }
+        
+        function playChord(chordName) {
+            if (!audioEnabled) return;
+            
+            const frets = chordDatabase[chordName];
+            if (!frets) return;
+            
+            const adjustedFrets = getAdjustedChordFrets(frets);
+            
+            adjustedFrets.forEach((fret, stringIndex) => {
+                if (fret >= 0) {
+                    setTimeout(() => {
+                        playUkuleleNote(stringIndex, fret);
+                    }, stringIndex * 50);
+                }
+            });
+        }
+        
+        // Capo functions
+        function updateCapo() {
+            capoPosition = parseInt(document.getElementById('capoSelect').value);
+            updateCapoDisplay();
+            displayChord(chordProgression[currentChordIndex]);
+            document.getElementById('capoInfo').textContent = capoPosition === 0 ? 'None' : `Fret ${capoPosition}`;
+        }
+        
+        function updateCapoDisplay() {
+            document.querySelectorAll('.capo').forEach(capo => capo.remove());
+            
+            if (capoPosition > 0) {
+                const fretboard = document.getElementById('fretboard');
+                const capo = document.createElement('div');
+                capo.className = 'capo';
+                capo.style.top = (capoPosition * 45 + 8) + 'px';
+                
+                const indicator = document.createElement('div');
+                indicator.className = 'capo-indicator';
+                indicator.textContent = capoPosition;
+                capo.appendChild(indicator);
+                
+                fretboard.appendChild(capo);
+            }
+        }
+        
+        function getAdjustedChordFrets(originalFrets) {
+            if (capoPosition === 0) return originalFrets;
+            
+            return originalFrets.map(fret => {
+                if (fret === 0) {
+                    return capoPosition;
+                } else {
+                    const newFret = fret - capoPosition;
+                    return newFret <= 0 ? 0 : newFret;
+                }
+            });
+        }
+        
+        // Display functions
+        function displayChord(chordName) {
+            document.querySelectorAll('.finger-dot').forEach(dot => dot.remove());
+            
+            const fretboard = document.getElementById('fretboard');
+            const originalFrets = chordDatabase[chordName];
+            
+            if (!originalFrets) return;
+            
+            const adjustedFrets = getAdjustedChordFrets(originalFrets);
+            const stringPositions = [18, 38, 58, 78];
+            
+            adjustedFrets.forEach((fret, stringIndex) => {
+                if (fret > 0) {
+                    const dot = document.createElement('div');
+                    dot.className = 'finger-dot';
+                    
+                    dot.style.left = stringPositions[stringIndex] + '%';
+                    dot.style.top = (fret * 45) + 'px';
+                    
+                    dot.addEventListener('click', () => {
+                        playUkuleleNote(stringIndex, fret);
+                    });
+                    
+                    dot.title = `${chordName} - ${['G','C','E','A'][stringIndex]} string, fret ${fret}`;
+                    
+                    fretboard.appendChild(dot);
+                }
+            });
+            
+            document.getElementById('currentChord').textContent = chordName;
+            document.getElementById('infoChord').textContent = chordName;
+            
+            if (audioEnabled) {
+                playChord(chordName);
+            }
+        }
+        
+        function updateChordProgression() {
+            const container = document.getElementById('chordProgression');
+            container.innerHTML = '';
+            
+            chordProgression.forEach((chord, index) => {
+                const button = document.createElement('button');
+                button.className = 'chord-button';
+                button.textContent = chord;
+                button.onclick = () => {
+                    currentChordIndex = index;
+                    displayChord(chord);
+                    updateChordProgression();
+                };
+                
+                if (index === currentChordIndex) {
+                    button.classList.add('active');
+                }
+                
+                container.appendChild(button);
+            });
+        }
+        
+        // Audio controls
+        function toggleAudio() {
+            audioEnabled = document.getElementById('audioEnabled').checked;
+            document.getElementById('audioStatus').textContent = audioEnabled ? 'Enabled' : 'Disabled';
+        }
+        
+        function updateVolume() {
+            masterVolume = parseFloat(document.getElementById('volumeSlider').value);
+            document.getElementById('volumeDisplay').textContent = Math.round(masterVolume * 100) + '%';
+        }
+        
+        // Playback controls
+        function playPause() {
+            if (isPlaying) {
+                clearInterval(playbackInterval);
+                isPlaying = false;
+                document.querySelector('.control-button').textContent = '▶️ Play';
+            } else {
+                playbackInterval = setInterval(next, 2000);
+                isPlaying = true;
+                document.querySelector('.control-button').textContent = '⏸️ Pause';
+            }
+        }
+        
+        function stop() {
+            clearInterval(playbackInterval);
+            isPlaying = false;
+            currentChordIndex = 0;
+            displayChord(chordProgression[0]);
+            updateChordProgression();
+            document.querySelector('.control-button').textContent = '▶️ Play';
+        }
+        
+        function previous() {
+            currentChordIndex = Math.max(0, currentChordIndex - 1);
+            displayChord(chordProgression[currentChordIndex]);
+            updateChordProgression();
+        }
+        
+        function next() {
+            currentChordIndex = (currentChordIndex + 1) % chordProgression.length;
+            displayChord(chordProgression[currentChordIndex]);
+            updateChordProgression();
+        }
+        
+        // Initialize app
+        window.addEventListener('load', function() {
+            initAudio();
+            displayChord(chordProgression[currentChordIndex]);
+            updateChordProgression();
+            updateCapoDisplay();
+            console.log('🎸 Ukulele app initialized');
+        });
+    </script>
+</body>
+</html>

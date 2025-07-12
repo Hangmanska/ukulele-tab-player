@@ -1,0 +1,105 @@
+﻿import cv2
+import pyrealsense2 as rs
+import numpy as np
+import mediapipe as mp
+
+# Init RealSense
+pipeline = rs.pipeline()
+config = rs.config()
+config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+pipeline.start(config)
+
+# Init MediaPipe
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5)
+mp_draw = mp.solutions.drawing_utils
+
+FINGER_TIPS = [4, 8, 12, 16, 20]  # Thumb, Index, Middle, Ring, Pinky
+STRINGS = ["G", "C", "E", "A"]
+FRET_COUNT = 10
+
+# ------------------ Calibration (ปรับตามกล้องของคุณ) ------------------
+STRING_ZONES = [(100, 170), (171, 250), (251, 330), (331, 420)]
+FRET_LINES_Y = [100, 130, 160, 190, 220, 250, 280, 310, 340, 370]  # 10 frets
+
+# UI Display
+WIDTH, HEIGHT = 500, 700
+spacing_x = WIDTH // (len(STRINGS) + 1)
+spacing_y = HEIGHT // (FRET_COUNT + 1)
+
+def map_to_string(x):
+    for i, (xmin, xmax) in enumerate(STRING_ZONES):
+        if xmin <= x <= xmax:
+            return i
+    return None
+
+def map_to_fret(y):
+    for i, limit in enumerate(FRET_LINES_Y):
+        if y < limit:
+            return i
+    return FRET_COUNT
+
+def draw_fretboard(img, pressed):
+    img.fill(0)
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    # Draw layout
+    for i, s in enumerate(STRINGS):
+        x = spacing_x * (i + 1)
+        cv2.putText(img, s, (x - 10, 30), font, 0.8, (255, 255, 255), 2)
+        cv2.line(img, (x, spacing_y * 2), (x, spacing_y * (FRET_COUNT + 1)), (200, 200, 200), 2)
+    for f in range(1, FRET_COUNT + 1):
+        y = spacing_y * (f + 1)
+        cv2.line(img, (spacing_x, y), (spacing_x * len(STRINGS), y), (200, 200, 200), 1)
+        cv2.putText(img, str(f), (10, y + 5), font, 0.6, (200, 200, 200), 1)
+    # Draw fingers
+    for idx, (string, fret) in pressed.items():
+        x = spacing_x * (string + 1)
+        y = spacing_y * (fret + 1)
+        cv2.circle(img, (x, y), 20, (0, 255, 255), -1)
+        cv2.putText(img, str(idx), (x - 10, y + 5), font, 0.8, (0, 0, 0), 2)
+
+# ---------- Main loop ----------
+print("🟢 ระบบเริ่มต้น: ตรวจเฉพาะมือซ้าย และแสดงตำแหน่งกดสายบน fretboard")
+try:
+    while True:
+        frames = pipeline.wait_for_frames()
+        color_frame = frames.get_color_frame()
+        if not color_frame:
+            continue
+        frame = np.asanyarray(color_frame.get_data())
+        h, w, _ = frame.shape
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = hands.process(rgb)
+
+        pressed = {}
+
+        if results.multi_hand_landmarks and results.multi_handedness:
+            for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
+                hand_label = results.multi_handedness[i].classification[0].label
+                if hand_label != "Right":
+                    continue
+
+                for idx in FINGER_TIPS:
+                    lm = hand_landmarks.landmark[idx]
+                    cx, cy = int(lm.x * w), int(lm.y * h)
+                    string = map_to_string(cx)
+                    fret = map_to_fret(cy)
+                    if string is not None:
+                        pressed[idx] = (string, fret)
+                        print(f"🎸 นิ้ว {idx} กดสาย {STRINGS[string]} เฟรต {fret}")
+                    cv2.circle(frame, (cx, cy), 6, (0, 255, 255), -1)
+                    cv2.putText(frame, str(idx), (cx + 5, cy - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 255), 1)
+
+                #mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+        fretboard_img = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
+        draw_fretboard(fretboard_img, pressed)
+
+        cv2.imshow("🎯 Calibrate Fretboard Mapping", frame)
+        cv2.imshow("Ukulele Fretboard Debug", fretboard_img)
+
+        if cv2.waitKey(1) & 0xFF == 27:
+            break
+finally:
+    pipeline.stop()
+    cv2.destroyAllWindows()

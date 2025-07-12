@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ukulele Tab Player</title>
+  <style>
+    body {
+      display: flex;
+      background-color: #1e2a38;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    #fretboard {
+      width: 300px;
+      border: 2px solid red;
+      padding: 10px;
+      background: #3e2b1f;
+    }
+    #fretboard .string {
+      position: relative;
+      height: 40px;
+      border-bottom: 1px solid #eee;
+    }
+    #fretboard .note {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(0,123,255,0.8);
+      top: 8px;
+    }
+    #tab-container {
+      flex: 1;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      background: #111;
+      color: #0f0;
+      font-family: monospace;
+      font-size: 14px;
+      border: none;
+      outline: none;
+      padding: 10px;
+    }
+    #playButton {
+      margin-top: 10px;
+    }
+    .highlight-column {
+      background-color: rgba(255, 255, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div id="fretboard"></div>
+  <div id="tab-container">
+    <textarea id="tabInput">A |--0--2--0--2--|
+E |--0--2--0--0--|
+C |--1--1--2--1--|
+G |--2--2--2--2--|
+</textarea>
+    <br />
+    <button id="playButton">Play Highlight</button>
+    <div id="tabDisplay"></div>
+  </div>
+
+  <script>
+    const fretboard = document.getElementById('fretboard');
+    const tabInput = document.getElementById('tabInput');
+    const tabDisplay = document.getElementById('tabDisplay');
+    const playButton = document.getElementById('playButton');
+
+    const strings = ['G', 'C', 'E', 'A'];
+
+    function createFretboard() {
+      fretboard.innerHTML = '';
+      for (let i = 0; i < strings.length; i++) {
+        const div = document.createElement('div');
+        div.className = 'string';
+        div.dataset.string = strings[i];
+        fretboard.appendChild(div);
+      }
+    }
+
+    function showFingerPositions(columnData) {
+      const stringToIndex = { 'G': 0, 'C': 1, 'E': 2, 'A': 3 };
+      const stringsDiv = fretboard.querySelectorAll('.string');
+      stringsDiv.forEach(str => str.innerHTML = '');
+      columnData.forEach(note => {
+        if (note.fret !== '-' && !isNaN(parseInt(note.fret))) {
+          const noteDiv = document.createElement('div');
+          noteDiv.className = 'note';
+          noteDiv.style.left = `${parseInt(note.fret) * 20}px`;
+          stringsDiv[stringToIndex[note.string]].appendChild(noteDiv);
+        }
+      });
+    }
+
+    function parseTab() {
+      const lines = tabInput.value.split('\n').filter(l => l.includes('|'));
+      const tabMap = {};
+      const tabLength = lines[0].split('|')[1].length;
+      lines.forEach(line => {
+        const [string, tabPart] = line.split('|');
+        tabMap[string.trim()] = tabPart.trim();
+      });
+
+      const columns = [];
+      for (let i = 0; i < tabLength; i++) {
+        const col = strings.map(s => ({ string: s, fret: tabMap[s][i] || '-' }));
+        columns.push(col);
+      }
+      return columns;
+    }
+
+    function highlightColumn(columnIndex) {
+      const tabLines = tabInput.value.split('\n');
+      const formatted = tabLines.map(line => {
+        let before = line.slice(0, line.indexOf('|') + 1);
+        let content = line.slice(line.indexOf('|') + 1).split('');
+        if (content[columnIndex]) content[columnIndex] = `%${content[columnIndex]}%`;
+        return before + content.join('');
+      });
+      tabInput.value = formatted.join('\n').replace(/%(.{1})%/g, '$1');
+    }
+
+    playButton.addEventListener('click', async () => {
+      const tabColumns = parseTab();
+      for (let i = 0; i < tabColumns.length; i++) {
+        showFingerPositions(tabColumns[i]);
+        highlightColumn(i);
+        await new Promise(r => setTimeout(r, 600));
+      }
+    });
+
+    createFretboard();
+  </script>
+</body>
+</html>

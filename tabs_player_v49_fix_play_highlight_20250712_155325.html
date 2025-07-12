@@ -1,0 +1,69 @@
+
+<!-- ตัวอย่าง Patch เบื้องต้น (สมมุติ HTML มีฟังก์ชัน playTabPlayback และ logic สำหรับแสดงโน้ต) -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Tabs Player</title>
+  <style>
+    .highlight-note {
+      background-color: rgba(255, 255, 0, 0.5);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <pre id="tabDisplay">
+G|---------------------|
+C|--------0--------0---|
+E|----2--------2-------|
+A|--0--------0---------|
+  </pre>
+
+  <button onclick="playTab()">▶ Play</button>
+
+  <script>
+    const tabLines = document.getElementById("tabDisplay").innerText.split("\n");
+    let currentNoteIndex = 0;
+
+    const notePositions = [
+      { string: 3, index: 2 },
+      { string: 2, index: 4 },
+      { string: 1, index: 6 },
+      { string: 0, index: 8 },
+    ];
+
+    function highlightNote(pos) {
+      const display = document.getElementById("tabDisplay");
+      const lines = display.innerText.split("\n");
+
+      // ลบ highlight เก่า
+      const original = lines.map(line => line.replace(/\x01(.*?)\x02/g, '$1'));
+
+      // ใส่ highlight ใหม่
+      const hl = pos;
+      original[hl.string] =
+        original[hl.string].slice(0, hl.index) +
+        "\x01" +
+        original[hl.string].slice(hl.index, hl.index + 1) +
+        "\x02" +
+        original[hl.string].slice(hl.index + 1);
+
+      display.innerHTML = original.map(line =>
+        line.replace(/\x01(.*?)\x02/, '<span class="highlight-note">$1</span>')
+      ).join("\n");
+    }
+
+    function playTab() {
+      let i = 0;
+      function next() {
+        if (i >= notePositions.length) return;
+        highlightNote(notePositions[i]);
+        i++;
+        setTimeout(next, 600);
+      }
+      next();
+    }
+  </script>
+</body>
+</html>
